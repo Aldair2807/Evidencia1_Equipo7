@@ -203,3 +203,5 @@ def empieza():
             break
     except Exception:
         print("Error, favor de verificar la opcion elegida.")
+
+empieza()
