@@ -93,3 +93,71 @@ def consultas():
         except Exception:
             print("Error al buscar por fechas.")
         else: break
+
+
+def registro():
+    global fechaHoy, folio, fechaUsuario
+    global fecha_str, cliente, montoPagar, adquiridos, costo  #diccionario main
+    global adquiridosFinal
+
+    global servicio
+
+    adquiridos=[]
+    print("╔═══════════════════════════════════╗")
+    print("║             REGISTRO              ║")
+    print("║═══════════════════════════════════║")
+    print("╚═══════════════════════════════════╝")
+    while True:
+        try:
+            print("Ingresa la fecha de registro. Formato (AAAA/MM/DD)")
+            fecha_str = input("->")
+            if fecha_str.strip()=="": break
+
+            fechaUsuario = datetime.strptime(fecha_str, '%Y/%m/%d')
+
+            if fechaUsuario>fechaHoy:
+                print(f"Ingrese una fecha desde {fecha}, hacia atrás.")
+                continue
+            else:
+                while True:
+                    folio = r.randint(11111,99999)
+                    if folio in folios:
+                        continue
+                    else:
+                        folios.append(folio)
+                        break
+                cliente = input("Ingrese su nombre: ").capitalize()
+                if cliente.strip() == "": print("No deje vacio su nombre."); continue
+
+                while True:
+
+                    servicio = input("¿Que servicio va a realizar?: ")
+                    if servicio.strip() == "": print("No deje vacio el campo de servicio."); continue
+
+                    try:
+                        costo = float(input("¿Cual es el costo del servicio?: "))
+                    except Exception:
+                        print("Debe ser un numero flotante. Con decimales. Intenta de nuevo")
+                    else:
+                        montoPagar += costo
+
+                    adquiridos.append((servicio.capitalize(), costo))
+
+                    masServicios = input("¿Adquirir mas servicios? 1. Si / 2. No\n->")
+
+                    if masServicios == "1":
+                        continue
+                    else:
+                        adquiridosFinal[folio] = adquiridos
+                        break
+
+                notasDict.append((folio, fechaUsuario, cliente, montoPagar, adquiridosFinal[folio]))
+
+        except:
+            print("Error en la ejecucion de su solicitud. Intente de nuevo.")
+        else:
+
+            for i in notasDict:
+                print(i)
+
+            menu()
