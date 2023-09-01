@@ -183,3 +183,23 @@ def menu():
                 empieza()
         except Exception:
             print("Error, favor de intentar de nuevo.")
+
+def empieza():
+
+    print("╔═══════════════════════════════════╗")
+    print("║            BIENVENIDO             ║")
+    print("║═══════════════════════════════════║")
+    print("╚═══════════════════════════════════╝")
+
+
+    try:
+        while True:
+            opcion = int(input("1. Nuevo registro.\n2.Salir del registro.\n->"))
+
+            if not opcion in (1,2):
+                continue
+            if opcion==2: exit()
+            menu()
+            break
+    except Exception:
+        print("Error, favor de verificar la opcion elegida.")
