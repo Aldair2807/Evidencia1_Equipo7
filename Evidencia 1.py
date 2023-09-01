@@ -161,3 +161,25 @@ def registro():
                 print(i)
 
             menu()
+
+def menu():
+    global fecha_str, cliente, montoPagar, adquiridos, folio, adquiridos, costo
+    while True:
+        try:
+            print(f"\n\t<--- TALLER MECANICO --->\n1. Registrar factura\n2. Consulta y reportes\n3. Cancelar\n4. Recuperar\n5. Salir")
+            opcion = int(input("->"))
+            if opcion == 1:
+
+                fecha_str = ""
+                cliente = ""
+                montoPagar = 0
+                adquiridos = []
+                folio=0
+                costo=0
+                registro()
+            elif opcion == 2:
+                consultas()
+            elif opcion==5:
+                empieza()
+        except Exception:
+            print("Error, favor de intentar de nuevo.")
