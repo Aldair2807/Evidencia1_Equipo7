@@ -1,2 +1,2 @@
-print("hola")
-print("Nueva linea Abraham")
+import random as r
+from datetime import datetime
