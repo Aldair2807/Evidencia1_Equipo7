@@ -162,6 +162,34 @@ def registro():
 
             menu()
 
+def recuperarnota():
+    global notasDict, recuperar
+
+    try:
+        print("Ingrese el número de folio a recuperar :")
+        folio_recuperar = int(input("->"))
+
+        nota_recuperada = None  # nota_recuperada como None
+
+        for nota in notasDict:
+            if nota[0] == folio_recuperar:
+                nota_recuperada = nota
+                break
+
+        if nota_recuperada:
+            recuperar.append(nota_recuperada)
+            print("Nota recuperada con éxito.")
+        else:
+            print("No se encontró ninguna nota con el folio introducido.")
+
+    except ValueError:
+        print("Error: Por favor, ingrese un número válido para el folio.")
+    except Exception as e:
+        print(f"Ocurrió un error: {e}")
+
+    menu()
+
+
 def menu():
     global fecha_str, cliente, montoPagar, adquiridos, folio, adquiridos, costo
     while True:
