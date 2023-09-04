@@ -14,6 +14,8 @@ ESTRUCTURA DE notasDict
 notasDict = [(folio, fecha que ingresa usuario, cliente, total a pagar, {folio: [(servicio, costo)]})]
 '''
 
+
+
 def cancelarFolio():
     global fechaHoy, folio, fechaUsuario
     global fecha_str, cliente, montoPagar, adquiridos, costo  # diccionario main
@@ -55,31 +57,50 @@ def cancelarFolio():
                                     recuperar.append(i)
                                 else:
                                     cont+=1
+                            break
 
-                        break
                     menu()
         except Exception:
             print("No existe el folio indicado en el sistema.")
+
 
 def recuperarnota():
     global notasDict, recuperar
 
     try:
-        print("Ingrese el número de folio a recuperar :")
-        folio_recuperar = int(input("->"))
+        while True:
+            print("FOLIO\t\t\tFECHA\t\t\t\t\tCLIENTE\t\t\tTOTAL A PAGAR")
+            for i in recuperar:
+                print(f"{i[0]}\t\t{i[1]}\t\t{i[2]}\t\t{i[3]}")
+            break
 
-        nota_recuperada = 0
+
+        print("Ingrese el número de folio a recuperar (Vacio para regresar al menu):")
+        folio_recuperar = int(input("->"))
+        if str(folio_recuperar).strip()=="": menu()
+
+        nota_recuperada = None  # nota_recuperada como None
 
         for nota in recuperar:
             if nota[0] == folio_recuperar:
                 nota_recuperada = nota
-                break
+                print(f"Servicio: {nota[4][0][0]}\nCosto: {nota[4][0][1]}")
 
-        if nota_recuperada:
-            notasDict.append(nota_recuperada)
-            print("Nota recuperada con éxito.")
-        else:
-            print("No se encontró ninguna nota con el folio introducido.")
+            while True:
+                resp=int(input("Elija: 1- Confirmar / 2- Cancelar operación.\n->"))
+                if not resp in (1,2): continue
+                elif resp==1:
+                    if nota_recuperada:
+                        notasDict.append(nota_recuperada)
+                        print("Nota recuperada con éxito.")
+                        break
+                    else:
+                        print("No se encontró ninguna nota con el folio introducido.")
+                else:
+                    print("No se recuperó la nota.")
+                    menu()
+                
+
 
     except ValueError:
         print("Error: Por favor, ingrese un número válido para el folio.")
@@ -197,7 +218,7 @@ def registro():
             fechaUsuario = datetime.strptime(fecha_str, '%Y/%m/%d')
 
             if fechaUsuario>fechaHoy:
-                print(f"Ingrese una fecha desde {fecha}, hacia atrás.")
+                print(f"Ingrese una fecha desde {fechaHoy}, hacia atrás.")
                 continue
             else:
                 while True:
@@ -219,6 +240,7 @@ def registro():
                         costo = float(input("¿Cual es el costo del servicio?: "))
                     except Exception:
                         print("Debe ser un numero flotante. Con decimales. Intenta de nuevo")
+                        continue
                     else:
                         montoPagar += costo
 
@@ -243,35 +265,11 @@ def registro():
 
             menu()
 
-def recuperarnota():
-    global notasDict, recuperar
 
-    try:
-        print("Ingrese el número de folio a recuperar :")
-        folio_recuperar = int(input("->"))
-
-        nota_recuperada = None  # nota_recuperada como None
-
-        for nota in notasDict:
-            if nota[0] == folio_recuperar:
-                nota_recuperada = nota
-                break
-
-        if nota_recuperada:
-            recuperar.append(nota_recuperada)
-            print("Nota recuperada con éxito.")
-        else:
-            print("No se encontró ninguna nota con el folio introducido.")
-    except ValueError:
-        print("Error: Por favor, ingrese un número válido para el folio.")
-    except Exception as e:
-        print(f"Ocurrió un error: {e}")
-
-    menu()
 
 
 def menu():
-    global fecha_str, cliente, montoPagar, adquiridos, folio, adquiridos, costo
+    global fecha_str, cliente, montoPagar, adquiridos, folio, adquiridos, costo, recuperar
     while True:
         try:
             print(f"\n\t<--- TALLER MECANICO --->\n1. Registrar factura\n2. Consulta y reportes\n3. Cancelar\n4. Recuperar\n5. Salir")
@@ -310,7 +308,13 @@ def empieza():
 
             if not opcion in (1,2):
                 continue
-            if opcion==2: exit()
+            if opcion==2:
+                while True:
+                    print("Desea salir del programa?")
+                    resp=int(input("Ingrese 1. Si  /  2. No\n->"))
+                    if not resp in (1,2):
+                        print("Elija una opcion correcta.")
+                    elif  resp==1: exit()
             menu()
             break
     except Exception:
