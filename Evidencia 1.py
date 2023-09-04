@@ -5,14 +5,89 @@ fechaHoy = datetime.today()
 
 notasDict = []
 recuperar = []
+folios = []
+adquiridosFinal ={}
+
 '''
 ESTRUCTURA DE notasDict
 
 notasDict = [(folio, fecha que ingresa usuario, cliente, total a pagar, {folio: [(servicio, costo)]})]
 '''
-folios = []
-adquiridosFinal ={}
 
+def cancelarFolio():
+    global fechaHoy, folio, fechaUsuario
+    global fecha_str, cliente, montoPagar, adquiridos, costo  # diccionario main
+    global adquiridosFinal
+    global consultaFolio
+    global servicio, recuperar
+
+    while True:
+        try:
+            print("Ingrese el folio de la nota a cancelar.")
+            elige=int(input("->"))
+
+
+            for i in notasDict:
+                if i[0]==elige:
+                    print(f"\nFolio: {i[0]}")
+                    print(f"Fecha: {i[1]}")
+                    print(f"Cliente: {i[2]}")
+                    print(f"Monto a pagar: {i[3]}")
+                    print("Servicios:")
+                    for i in adquiridosFinal[i[0]]:
+                        print(f"\t- {i[0]} ---- ${i[1]}")
+
+                    while True:
+                        respuesta=int(input("\n¿Está seguro que desea cancelar la nota? / (1) Si  /  (2) No\n->"))
+
+                        if not respuesta in (1,2):
+                            print("Escriba 1 o 2, según sea el caso.")
+                            continue
+                        elif respuesta==2:
+                            print("No se borro la nota.")
+                            break
+                        elif respuesta==1:
+                            print(f"Se borró la nota.")
+                            cont=0
+                            for i in notasDict:
+                                if i[0]==elige:
+                                    notasDict.pop(cont)
+                                    recuperar.append(i)
+                                else:
+                                    cont+=1
+
+                        break
+                    menu()
+        except Exception:
+            print("No existe el folio indicado en el sistema.")
+
+def recuperarnota():
+    global notasDict, recuperar
+
+    try:
+        print("Ingrese el número de folio a recuperar :")
+        folio_recuperar = int(input("->"))
+
+        nota_recuperada = 0
+
+        for nota in recuperar:
+            if nota[0] == folio_recuperar:
+                nota_recuperada = nota
+                break
+
+        if nota_recuperada:
+            notasDict.append(nota_recuperada)
+            print("Nota recuperada con éxito.")
+        else:
+            print("No se encontró ninguna nota con el folio introducido.")
+
+    except ValueError:
+        print("Error: Por favor, ingrese un número válido para el folio.")
+    except Exception as e:
+        print(f"Ocurrió un error: {e}")
+
+    menu()
+    
 def consultaXfolio():
     global fechaHoy, folio, fechaUsuario
     global fecha_str, cliente, montoPagar, adquiridos, costo  # diccionario main
@@ -28,8 +103,10 @@ def consultaXfolio():
         except Exception:
             print("Ingrese una opcion correcta.")
 
+        existeFolio=False
         for k in notasDict:
             if k[0]==consultaFolio:
+                existeFolio=True
                 print(f"\nFolio: {k[0]}")
                 print(f"Fecha: {k[1]}")
                 print(f"Cliente: {k[2]}")
@@ -37,6 +114,10 @@ def consultaXfolio():
                 print("Servicios:")
                 for i in adquiridosFinal[k[0]]:
                     print(f"\t- {i[0]} ---- ${i[1]}")
+
+        if not existeFolio:
+            print(f"No existe el folio {consultaFolio}")
+            consultaFolio=0
         break
     menu()
 
