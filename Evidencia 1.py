@@ -262,7 +262,6 @@ def recuperarnota():
             print("Nota recuperada con éxito.")
         else:
             print("No se encontró ninguna nota con el folio introducido.")
-
     except ValueError:
         print("Error: Por favor, ingrese un número válido para el folio.")
     except Exception as e:
