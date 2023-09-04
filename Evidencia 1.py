@@ -288,6 +288,10 @@ def menu():
                 registro()
             elif opcion == 2:
                 consultas()
+            elif opcion==3:
+                cancelarFolio()
+            elif opcion==4:
+                recuperarnota()
             elif opcion==5:
                 empieza()
         except Exception:
