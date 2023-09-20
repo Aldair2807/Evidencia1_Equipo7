@@ -193,7 +193,6 @@ def consultas():
 
     while True:
         try:
-            for j in notasDict:
                 # Solicitar las fechas de inicio y fin al usuario
                 inicio_str = input("Ingrese la fecha de inicio en el formato dd/mm/aaaa (Vacio para regresar)\n-> ")
                 if inicio_str == "":
@@ -208,21 +207,23 @@ def consultas():
                 inicio = datetime.strptime(inicio_str, '%d/%m/%Y')
                 fin = datetime.strptime(fin_str, '%d/%m/%Y')
 
-                Existe = False
-                if j[1] >= inicio and j[1] <= fin:
-                    Existe = True
-                    print(f"\nFolio: {j[0]}")
-                    print(f"Fecha: {j[1]}")
-                    print(f"Cliente: {j[2]}")
-                    print(f"RFC: {j[5]}")
-                    print(f"Correo: {j[6]}")
-                    print(f"Monto a pagar: ${j[3]}")
-                    print("Servicios:")
-                    for i in adquiridosFinal[j[0]]:
-                        print(f"\t- {i[0]} ---- ${i[1]}")
-                if not Existe:
-                    print("No existe ningun dato dentro del rango proporcionado.")
-                    continue
+                for j in notasDict:
+
+                    Existe = False
+                    if j[1] >= inicio and j[1] <= fin:
+                        Existe = True
+                        print(f"\nFolio: {j[0]}")
+                        print(f"Fecha: {j[1]}")
+                        print(f"Cliente: {j[2]}")
+                        print(f"RFC: {j[5]}")
+                        print(f"Correo: {j[6]}")
+                        print(f"Monto a pagar: ${j[3]}")
+                        print("Servicios:")
+                        for i in adquiridosFinal[j[0]]:
+                            print(f"\t- {i[0]} ---- ${i[1]}")
+                    if not Existe:
+                        print("No existe ningun dato dentro del rango proporcionado.")
+                        continue
 
 
         except Exception:
