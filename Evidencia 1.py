@@ -182,11 +182,13 @@ def consultas():
 
     while True:
         try:
-            elige = int(input("\n(1) Consulta por periodo\n(2) Consulta por folio.\n->"))
-            if not elige in (1, 2):
+            elige = int(input("\n(1) Consulta por periodo\n(2) Consulta por folio\n(3) Regresar\n->"))
+            if not elige in (1, 2, 3):
                 continue
             elif elige == 2:
                 consultaXfolio()
+            elif elige == 3:
+                menu()
         except Exception:
             print("Ingrese un valor correcto.")
         break
@@ -194,26 +196,38 @@ def consultas():
     while True:
         try:
                 # Solicitar las fechas de inicio y fin al usuario
-                inicio_str = input("Ingrese la fecha de inicio en el formato dd/mm/aaaa (Vacio para regresar)\n-> ")
+                inicio_str = input("Ingrese la fecha de inicio en el formato dd/mm/aaaa. (Indique 0 para regresar al menu de consultas)\n-> ")
                 if inicio_str == "":
-                    print("Regresando...")
-                    continue
+                    inicio_str = "01/01/2000"  # Formato: año, mes, día
+                    print("La fecha de inicio se asignó autommáticamente a: 01/01/2000")
 
-                fin_str = input("Ingrese la fecha de fin en el formato dd/mm/aaaa (Vacio para regresar)\n-> ")
+                if inicio_str in ("0","00","000","0000"):
+                    consultas()
+
+                fin_str = input("Ingrese la fecha de fin en el formato dd/mm/aaaa\n-> ")
                 if fin_str == "":
-                    print("Regresando...")
-                    continue
+                    fin_str = str(fechaActual)
+
+                    fechaFormato = fechaHoy.strftime("%d/%m/%Y")
+                    print(f"La fecha fin se asignó autommáticamente a: {fechaHoy}")
+
+                if fin_str in ("0","00","000","0000"):
+                    consultas()
 
                 inicio = datetime.strptime(inicio_str, '%d/%m/%Y')
+                #inicio = inicio.strftime("%d/%m/%Y")
                 fin = datetime.strptime(fin_str, '%d/%m/%Y')
+                #fin = fin.strftime("%d/%m/%Y")
 
+                Existe = False
                 for j in notasDict:
-
-                    Existe = False
                     if j[1] >= inicio and j[1] <= fin:
+                        print("*******************************************")
                         Existe = True
+                        fecha_formateada = j[1]
+                        fecha_formateada = fecha_formateada.strftime("%d/%m/%Y")
                         print(f"\nFolio: {j[0]}")
-                        print(f"Fecha: {j[1]}")
+                        print(f"Fecha: {fecha_formateada}")
                         print(f"Cliente: {j[2]}")
                         print(f"RFC: {j[5]}")
                         print(f"Correo: {j[6]}")
@@ -221,9 +235,12 @@ def consultas():
                         print("Servicios:")
                         for i in adquiridosFinal[j[0]]:
                             print(f"\t- {i[0]} ---- ${i[1]}")
-                    if not Existe:
-                        print("No existe ningun dato dentro del rango proporcionado.")
-                        continue
+                        print("*******************************************")
+                if not Existe:
+                    print("*******************************************")
+                    print("No existe ningun dato dentro del rango proporcionado.")
+                    print("*******************************************")
+                    continue
 
 
         except Exception:
@@ -292,7 +309,6 @@ def registro():
                     else:
                         break
                 while True:
-
                     servicio = input("¿Que servicio va a realizar?: ")
                     if servicio.strip() == "":
                         print("**********************\nNo deje vacio el campo de servicio.\n**********************")
@@ -309,9 +325,15 @@ def registro():
                                 "**********************\nNo debe ser negativo. Vuelva a "
                                 "intentarlo.\n**********************")
                             continue
-                        break
-                    montoPagar += float(costo)
 
+                        patron_decimales = r'^\d+(\.\d{1,2})?$'
+                        if not bool(re.match(patron_decimales, costo)):
+                            print("No debe tener mas de dos decimales. Intente nuevamente.")
+                            continue
+
+                        break
+
+                    montoPagar += float(costo)
                     adquiridos.append((servicio.capitalize(), costo))
 
                     masServicios = input("¿Adquirir mas servicios? 1. Si / 2. No\n->")
