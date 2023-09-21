@@ -10,6 +10,7 @@ recuperar = []
 folios = []
 adquiridosFinal = {}
 
+listaRFC =  []
 '''
 ESTRUCTURA DE notasDict
 
@@ -28,7 +29,7 @@ def cancelarFolio():
         try:
             print("Ingrese el folio de la nota a cancelar.")
             elige = int(input("->"))
-
+            if elige==0: break
             for i in notasDict:
                 if i[0] == elige:
                     print(f"\nFolio: {i[0]}")
@@ -134,6 +135,21 @@ def recuperarnota():
 
     menu()
 
+'''
+
+
+REALIZAR REPORTE TABULAR CON INFORMACION DE NOTASDICT.
+
+
+
+'''
+def consultaCliente():
+    global notasDict, listaRFC
+    print("FOLIO\t\t\tFECHA\t\tCLIENTE\t\t\t\tRFC\t\tCORREO\t\t\t\tMONTO A PAGAR")
+    for i in notasDict:
+        fechaFormato = i[1].strftime("%d/%m/%Y")
+        print(f"{i[0]}\t\t\t{fechaFormato}\t\t\t{i[2]}\t\t\t{i[5]}\t{i[6]}\t\t\t{i[3]}")
+
 
 def consultaXfolio():
     global fechaHoy, folio, fechaUsuario
@@ -177,76 +193,75 @@ def consultas():
     global fechaHoy, folio, fechaUsuario
     global fecha_str, cliente, montoPagar, adquiridos, costo  # diccionario main
     global adquiridosFinal
-
     global servicio
 
     while True:
         try:
-            elige = int(input("\n(1) Consulta por periodo\n(2) Consulta por folio\n(3) Regresar\n->"))
+            elige = int(input("\n(1) Consulta por periodo\n(2) Consulta por folio\n(3) Consulta por cliente\n(4) Regresar\n->"))
             if not elige in (1, 2, 3):
                 continue
             elif elige == 2:
                 consultaXfolio()
-            elif elige == 3:
+            elif elige==3:
+                consultaCliente()
+            elif elige == 4:
                 menu()
         except Exception:
             print("Ingrese un valor correcto.")
         break
 
-    while True:
-        try:
-                # Solicitar las fechas de inicio y fin al usuario
-                inicio_str = input("Ingrese la fecha de inicio en el formato dd/mm/aaaa. (Indique 0 para regresar al menu de consultas)\n-> ")
-                if inicio_str == "":
-                    inicio_str = "01/01/2000"  # Formato: año, mes, día
-                    print("La fecha de inicio se asignó autommáticamente a: 01/01/2000")
+        while True:
+            try:
+                    # Solicitar las fechas de inicio y fin al usuario
+                    inicio_str = input("Ingrese la fecha de inicio en el formato dd/mm/aaaa. (Indique 0 para regresar al menu de consultas)\n-> ")
+                    if inicio_str == "":
+                        inicio_str = "01/01/2000"  # Formato: año, mes, día
+                        print("La fecha de inicio se asignó autommáticamente a: 01/01/2000")
 
-                if inicio_str in ("0","00","000","0000"):
-                    consultas()
+                    if inicio_str in ("0","00","000","0000"):
+                        consultas()
 
-                fin_str = input("Ingrese la fecha de fin en el formato dd/mm/aaaa\n-> ")
-                if fin_str == "":
-                    fin_str = str(fechaActual)
+                    fin_str = input("Ingrese la fecha de fin en el formato dd/mm/aaaa\n-> ")
+                    if fin_str == "":
+                        fin_str = str(fechaActual)
 
-                    fechaFormato = fechaHoy.strftime("%d/%m/%Y")
-                    print(f"La fecha fin se asignó autommáticamente a: {fechaHoy}")
+                        fechaFormato = fechaHoy.strftime("%d/%m/%Y")
+                        print(f"La fecha fin se asignó autommáticamente a: {fechaHoy}")
 
-                if fin_str in ("0","00","000","0000"):
-                    consultas()
+                    if fin_str in ("0","00","000","0000"):
+                        consultas()
 
-                inicio = datetime.strptime(inicio_str, '%d/%m/%Y')
-                #inicio = inicio.strftime("%d/%m/%Y")
-                fin = datetime.strptime(fin_str, '%d/%m/%Y')
-                #fin = fin.strftime("%d/%m/%Y")
+                    inicio = datetime.strptime(inicio_str, '%d/%m/%Y')
+                    #inicio = inicio.strftime("%d/%m/%Y")
+                    fin = datetime.strptime(fin_str, '%d/%m/%Y')
+                    #fin = fin.strftime("%d/%m/%Y")
 
-                Existe = False
-                for j in notasDict:
-                    if j[1] >= inicio and j[1] <= fin:
+                    Existe = False
+                    for j in notasDict:
+                        if j[1] >= inicio and j[1] <= fin:
+                            print("*******************************************")
+                            Existe = True
+                            fecha_formateada = j[1]
+                            fecha_formateada = fecha_formateada.strftime("%d/%m/%Y")
+                            print(f"\nFolio: {j[0]}")
+                            print(f"Fecha: {fecha_formateada}")
+                            print(f"Cliente: {j[2]}")
+                            print(f"RFC: {j[5]}")
+                            print(f"Correo: {j[6]}")
+                            print(f"Monto a pagar: ${j[3]}")
+                            print("Servicios:")
+                            for i in adquiridosFinal[j[0]]:
+                                print(f"\t- {i[0]} ---- ${i[1]}")
+                            print("*******************************************")
+                    if not Existe:
                         print("*******************************************")
-                        Existe = True
-                        fecha_formateada = j[1]
-                        fecha_formateada = fecha_formateada.strftime("%d/%m/%Y")
-                        print(f"\nFolio: {j[0]}")
-                        print(f"Fecha: {fecha_formateada}")
-                        print(f"Cliente: {j[2]}")
-                        print(f"RFC: {j[5]}")
-                        print(f"Correo: {j[6]}")
-                        print(f"Monto a pagar: ${j[3]}")
-                        print("Servicios:")
-                        for i in adquiridosFinal[j[0]]:
-                            print(f"\t- {i[0]} ---- ${i[1]}")
+                        print("No existe ningun dato dentro del rango proporcionado.")
                         print("*******************************************")
-                if not Existe:
-                    print("*******************************************")
-                    print("No existe ningun dato dentro del rango proporcionado.")
-                    print("*******************************************")
-                    continue
-
-
-        except Exception:
-            print("Error al buscar por fechas.")
-        else:
-            break
+                        continue
+            except Exception:
+                print("Error al buscar por fechas.")
+            else:
+                break
 
 
 def registro():
