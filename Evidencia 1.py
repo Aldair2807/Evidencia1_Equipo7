@@ -427,6 +427,16 @@ def menu():
                     menu()
         except Exception:
             print("Error, favor de intentar de nuevo.")
+    def salir():
+        """Solicita confirmación al usuario para salir del sistema y, en caso afirmativo, preserva el estado de la aplicación mediante un archivo CSV."""
+        confirmacion = input("¿Está seguro de que desea salir del sistema? (s/n) ")
+        if confirmacion == "s":
+            
+              with open("estado_de_la_aplicacion.csv", "w") as archivo:
+             
+                   archivo.write("estado_de_la_aplicacion")
+        # Salir del sistema
+        sys.exit()
 
 
 menu()
