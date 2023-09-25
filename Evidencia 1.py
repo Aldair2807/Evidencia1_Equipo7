@@ -1,5 +1,33 @@
 from datetime import datetime
 import re
+import csv
+def cargar_datos_csv():
+    try:
+        with open('notasDict.csv', 'r') as archivocsv:
+            reader = csv.DictReader(archivocsv)
+            for fila in reader:
+                # Convierte los valores a los tipos adecuados (por ejemplo, fecha y total a flotante)
+                fila['folio'] = int(fila['folio'])
+                fila['fecha'] = datetime.strptime(fila['fecha'], '%d/%m/%Y')
+                fila['total'] = float(fila['total'])
+                fila['servicios'] = eval(fila['servicios'])
+                notasDict.append(fila)
+
+        with open('recuperar.csv', 'r') as archivocsv:
+            reader = csv.DictReader(archivocsv)
+            for fila in reader:
+                # Convierte los valores a los tipos adecuados (por ejemplo, fecha y total a flotante)
+                fila['folio'] = int(fila['folio'])
+                fila['fecha'] = datetime.strptime(fila['fecha'], '%d/%m/%Y')
+                fila['total'] = float(fila['total'])
+                fila['servicios'] = eval(fila['servicios'])
+                recuperar.append(fila)
+
+        print("Datos cargados desde archivos CSV existentes.")
+    except Exception as e:
+        print("No se encontraron archivos CSV existentes. Comenzando desde un estado vacío.", e)
+
+cargar_datos_csv()
 
 fechaActual1 = datetime.today()
 fechaActual = datetime.strftime(fechaActual1, '%d/%m/%Y')
@@ -389,6 +417,39 @@ def registro():
             print("----------------------------------------")
 
             menu()
+
+def guardar_datos_csv():
+    with open('notasDict.csv', 'w', newline='') as archivocsv:
+        campo_nombres = ['folio', 'fecha', 'cliente', 'total', 'servicios', 'RFC', 'correo']
+        writer = csv.DictWriter(archivocsv, fieldnames = campo_nombres)
+
+        writer.writeheader()
+        for nota in notasDict:
+            writer.writerow({
+                'folio': nota[0],
+                'fecha': nota[1].strftime('%d/%m/%Y'),
+                'cliente': nota[2],
+                'total': nota[3],
+                'servicios': str(nota[4]),
+                'RFC': nota[5],
+                'correo': nota[6]
+            })
+
+    with open('recuperar.csv', 'w', newline='') as archivocsv:
+        campo_nombres = ['folio', 'fecha', 'cliente', 'total', 'servicios', 'RFC', 'correo']
+        writer = csv.DictWriter(archivocsv, fieldnames=campo_nombres)
+
+        writer.writeheader()
+        for nota in recuperar:
+            writer.writerow({
+                'folio': nota[0],
+                'fecha': nota[1].strftime('%d/%m/%Y'),
+                'cliente': nota[2],
+                'total': nota[3],
+                'servicios': str(nota[4]),
+                'RFC': nota[5],
+                'correo': nota[6]
+            })
 
 
 def menu():
