@@ -1,6 +1,15 @@
 from datetime import datetime
 import re
 import csv
+
+notasDict = []
+recuperar = []
+folios = []
+adquiridosFinal = {}
+
+listaRFC =  []
+
+
 def cargar_datos_csv():
     try:
         with open('notasDict.csv', 'r') as archivocsv:
@@ -33,12 +42,6 @@ fechaActual1 = datetime.today()
 fechaActual = datetime.strftime(fechaActual1, '%d/%m/%Y')
 fechaHoy = datetime.strptime(fechaActual, '%d/%m/%Y')
 
-notasDict = []
-recuperar = []
-folios = []
-adquiridosFinal = {}
-
-listaRFC =  []
 '''
 ESTRUCTURA DE notasDict
 
