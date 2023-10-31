@@ -125,7 +125,7 @@ def menuConsultasyReportes():
         print("4. Volver al menú principal")
 
         opcion = input("Seleccione una opción: ")
-
+        
         if opcion == "1":
             listado_clientes_registrados()
             pass
@@ -145,6 +145,8 @@ def busquedaPorClave():
         while True:
             print("Ingresa la clave del cliente a buscar")
             claveBuscar = int(input(">>"))
+            if len(claveBuscar.split())==0:
+                menu_principal()
             conn = sqlite3.connect("TALLER_MECANICO.db")
             cursor = conn.cursor()
             cursor.execute(f"SELECT * FROM CLIENTES WHERE clave={claveBuscar}")
@@ -162,7 +164,7 @@ def busquedaPorClave():
     except Exception as e:
         print("!" * 30)
         print("Debe ser un valor numerico, y no debe estar vacio.", e)
-    pass
+
 
 def busquedaPorNombre():
     print("*" * 30)
@@ -170,6 +172,8 @@ def busquedaPorNombre():
         while True:
             print("Ingresa el nombre del cliente a buscar")
             nombre = input(">>")
+            if nombre.split()=="":
+                menu_principal()
             conn = sqlite3.connect("TALLER_MECANICO.db")
             cursor = conn.cursor()
 
@@ -181,8 +185,10 @@ def busquedaPorNombre():
             if resultado[0] is None:
                 print("No hay datos del nombre ingresado, intenta con uno existente")
                 continue
+            print("*" * 30)
             for i in resultado:
                 print(f"Clave: {i[0]}\t| Nombre: {i[1]}\t| RFC: {i[2]}\t| Correo: {i[3]}")
+            print("*" * 30)
             conn.commit()
             conn.close()
     except Exception as e:
