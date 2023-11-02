@@ -56,26 +56,27 @@ C_correo = ""
 
 def menuClientes():
     print("*" * 30)
+    print("\tMenu Clientes\n")
     while True:
         print("1. Agregar un cliente")
         print("2. Consultas y reportes de clientes")
         print("3. Volver al menú principal")
 
         opcion = input("Seleccione una opción: ")
-        print("*" * 30)
         if opcion == "1":
             agregar_cliente()
-            pass
+            break
         elif opcion == "2":
             menuConsultasyReportes()
-            pass
+            break
         elif opcion == "3":
             menu_principal()
-            pass
+            break
 
 
 def agregar_cliente():
     print("*" * 30)
+    print("\tAgregar cliente\n")
     while True:
         patronNombre = r'[A-Za-z ]{3,}'
         C_nombreCliente = input("Ingrese su nombre completo\n>>")
@@ -122,53 +123,62 @@ def agregar_cliente():
     cursor.execute(f"INSERT INTO CLIENTES VALUES({claveMax},'{C_nombreCliente}','{C_RFC}','{C_correo}')")
     conn.commit()
     conn.close()
-
+    print("Registro agregado correctamente.")
 
 def menuConsultasyReportes():
-    print("*" * 30)
     while True:
+        print("*" * 30)
+        print("\tMenu Cosnultas y Reportes\n")
         print("1. Listado de clientes registrados")
         print("2. Busqueda por clave")
         print("3. Busqueda por nombre")
-        print("4. Volver al menú principal")
+        print("4. Volver al menú de clientes")
 
         opcion = input("Seleccione una opción: ")
 
         if opcion == "1":
             listado_clientes_registrados()
-            pass
+            break
         elif opcion == "2":
             busquedaPorClave()
-            pass
+            break
         elif opcion == "3":
             busquedaPorNombre()
-            pass
+            break
         elif opcion == "4":
             menuClientes()
-            pass
+            break
+        else:
+            print("No es una opcion valida.")
+            continue
 
 
 def busquedaPorClave():
     print("*" * 30)
+    print("\tBusqueda por clave\n")
     try:
         while True:
             print("Ingresa la clave del cliente a buscar")
-            claveBuscar = int(input(">>"))
-            if len(str(claveBuscar).strip()) == 0:
-                menu_principal()
+            try:
+                claveBuscar = int(input(">>"))
+            except:
+                print("Regresando...")
+                menuConsultasyReportes()
             conn = sqlite3.connect("TALLER_MECANICO.db")
             cursor = conn.cursor()
             cursor.execute(f"SELECT * FROM CLIENTES WHERE clave={claveBuscar}")
-            resultado = cursor.fetchone()
-            print(resultado[0])
-            if resultado is None:
+            resultado = cursor.fetchall()
+            print(resultado)
+            if resultado is None or len(resultado)==0:
                 print("No hay datos de la clave ingresada, intenta con una existente")
                 continue
 
-            print(f"Clave: {resultado[0]}")
-            print(f"Nombre: {resultado[1]}")
-            print(f"RFC: {resultado[2]}")
-            print(f"Correo: {resultado[3]}")
+            print("*"*20)
+            print(f"Clave: {resultado[0][0]}")
+            print(f"Nombre: {resultado[0][1]}")
+            print(f"RFC: {resultado[0][2]}")
+            print(f"Correo: {resultado[0][3]}")
+            print("*" * 20)
 
             conn.commit()
             conn.close()
@@ -179,12 +189,14 @@ def busquedaPorClave():
 
 def busquedaPorNombre():
     print("*" * 30)
+    print("\tBusqueda por nombre\n")
     try:
         while True:
             print("Ingresa el nombre del cliente a buscar")
             nombre = input(">>")
-            if nombre.split() == "":
-                menu_principal()
+            if len(nombre.split()) == 0:
+                print("Regresando...")
+                menuConsultasyReportes()
             conn = sqlite3.connect("TALLER_MECANICO.db")
             cursor = conn.cursor()
 
@@ -229,6 +241,31 @@ def listado_clientes_registrados():
             print("*" * 30)
             conn.commit()
             conn.close()
+
+            print("Exportar")
+            op = int(input("1. CSV\n"
+                           "2. EXCEL\n"
+                           "3. No exportar, regresar al menu de reportes\n"
+                           ">>"))
+
+            if op == 2:
+                df = pd.DataFrame(datos_excel[1:], columns=datos_excel[0])
+                fechaActual1 = datetime.today()
+                fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
+
+                df.to_excel(f'ReporteClientesActivosPorClave_{fechahoy}.xlsx', index=False)
+                print("Exportado correctamente.")
+            elif op == 1:
+                fechaActual1 = datetime.today()
+                fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
+                with open(f'ReporteClientesActivosPorClave_{fechahoy}.csv', 'w', newline='',
+                          encoding='utf-8') as archivo_csv:
+                    escritor_csv = csv.writer(archivo_csv)
+                    escritor_csv.writerows(datos_excel)
+                    print("Exportado correctamente.")
+            elif op == 3:
+                menuConsultasyReportes()
+
         elif op == 2:
             conn = sqlite3.connect("TALLER_MECANICO.db")
             cursor = conn.cursor()
@@ -241,28 +278,34 @@ def listado_clientes_registrados():
             print("*" * 30)
             conn.commit()
             conn.close()
+
+            print("Exportar")
+            op = int(input("1. CSV\n"
+                           "2. EXCEL\n"
+                           "3. No exportar, regresar al menu de reportes\n"
+                           ">>"))
+
+            if op == 2:
+                df = pd.DataFrame(datos_excel[1:], columns=datos_excel[0])
+                fechaActual1 = datetime.today()
+                fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
+
+                df.to_excel(f'ReporteClientesActivosPorNombre_{fechahoy}.xlsx', index=False)
+                print("Exportado correctamente.")
+            elif op == 1:
+                fechaActual1 = datetime.today()
+                fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
+                with open(f'ReporteClientesActivosPorNombre_{fechahoy}.csv', 'w', newline='',
+                          encoding='utf-8') as archivo_csv:
+                    escritor_csv = csv.writer(archivo_csv)
+                    escritor_csv.writerows(datos_excel)
+                    print("Exportado correctamente.")
+            elif op == 3:
+                menuConsultasyReportes()
         elif op == 3:
             menuConsultasyReportes()
 
-        print("Exportar")
-        op = int(input("1. CSV\n"
-                       "2. EXCEL\n"
-                       "3. No exportar, regresar al menu de reportes\n"
-                       ">>"))
 
-        if op == 2:
-            df = pd.DataFrame(datos_excel[1:], columns=datos_excel[0])
-            fechaActual1 = datetime.today()
-            fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
-
-            df.to_excel(f'ReporteClientesActivosPorClave_{fechahoy}.xlsx', index=False)
-        elif op == 1:
-            fechaActual1 = datetime.today()
-            fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
-            with open(f'ReporteClientesActivosPorClave_{fechahoy}.csv', 'w', newline='',
-                      encoding='utf-8') as archivo_csv:
-                escritor_csv = csv.writer(archivo_csv)
-                escritor_csv.writerows(datos_excel)
         listado_clientes_registrados()
     except Exception as e:
         print("!" * 30)
@@ -295,6 +338,7 @@ def listado_servicios():
 # Menú principal
 def menu_principal():
     while True:
+        print("*"*20)
         print("Menú Principal")
         print("1. Menú Notas")
         print("2. Menú Clientes")
