@@ -9,26 +9,210 @@ if not os.path.isfile(base_datos):
     try:
         with sqlite3.connect("TALLER_MECANICO.db") as conn:
             mi_cursor = conn.cursor()
-            mi_cursor.execute("CREATE TABLE IF NOT EXISTS SERVICIOS \
-            (clave INTEGER PRIMARY KEY, nombreServicio TEXT NOT NULL, costo REAL NOT NULL);")
+            mi_cursor.execute("CREATE TABLE IF NOT EXISTS NOTAS \
+            (clave INTEGER PRIMARY KEY, fecha TEXT NOT NULL, nombre_Cliente TEXT NOT NULL, rfc_cliente TEXT NOT NULL, correo_cliente TEXT NOT NULL, total REAL, cancelada INT NOT NULL);")
             if mi_cursor:
-                print("Tabla creada exitosamente")
+                print("Tabla NOTAS creada exitosamente")
     except Error as e:
         print(e)
     except Exception:
         print(f"Se produjo el siguiente error: {sys.exc_info()[0]}")
 
+fechaHoy = datetime.today()
+fecha = datetime.strftime(fechaHoy, '%d/%m/%Y')
+fecha2 = datetime.strptime(fecha, '%d/%m/%Y')
+
+idnota = 0
 
 # Menú Notas
 def registrar_nota():
-    # Lógica para registrar una nueva nota
-    pass
+    while True:
+        print("*" * 30)
+        print("Agregar una nota")
+        print("*" * 30)
+        try:
+            # INGRESA LA CLAVE, SI EXISTE, CONTINUA INGRESANDO DATOS
+            # SI NO EXISTE SE REPITE LA SOLICITUD
+            conn = sqlite3.connect("TALLER_MECANICO.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT clave, nombre FROM CLIENTES;")
+            listado = cursor.fetchall()
+            print("Listado de clientes registrados:")
+            for i, j in listado:
+                print(f"Clave: {i}\tNombre: {j}")
+            print("*" * 30)
+            conn.close()
+
+            clave2 = int(input("Ingresa la clave de cliente\n>>"))
+            conn = sqlite3.connect("TALLER_MECANICO.db")
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT * FROM CLIENTES WHERE clave={clave2}")
+            resultado = cursor.fetchone()
+            conn.close()
+            if resultado is not None:
+                print("*" * 30)
+                print(f"Clave: {resultado[0]}")
+                print(f"Nombre: {resultado[1]}")
+                print(f"RFC: {resultado[2]}")
+                print(f"Correo: {resultado[3]}")
+                print("*" * 30)
+
+                clave_cliente = resultado[0]
+            else:
+                print("No existe el cliente con esa clave.")
+                continue
+        except Exception as e:
+            print("Error en la captura de la clave.")
+            continue
+
+        # AQUI INGRESA LA FECHA EN FORMATO DD/MM/YYYY, SI ES
+        # INCORRECTA O POSTERIOR A LA ACTUAL NO DEJA AVANZAR
+        while True:
+            try:
+                fechaUser = input("Ingrese la fecha con formato 'dd/mm/aaaa'\n>>")
+                fechaUser = datetime.strptime(fechaUser, '%d/%m/%Y')
+
+                if fechaUser > fecha2:
+                    print("No puede ser posterior a la fecha actual.")
+                    continue
+                else:
+                    fechaUser = datetime.strftime(fechaUser, '%d/%m/%Y')
+            except:
+                print("Error en la entrada de informacion (Fecha).")
+                continue
+            break
+
+        # SOLICITANDO LA CLAVE DEL SERVICIO
+        # PARA IR AGREGANDO A LA TABLA NOTAS EN "claveServicio" SOLO SI EXISTE
+
+        # VER EL FOLIO QUE VAMOS A UTILIZAR PARA LA NOTA Y TODOS LOS SERVICIOS QUE ELIJA
+        # SI ELIJE MAS DE 1 SERVICIO, LA CLAVE O FOLIO SERA EL MISMO
+
+        conn = sqlite3.connect("TALLER_MECANICO.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT MAX(folio) FROM NOTAS;")
+        folio = cursor.fetchone()
+        if folio[0] is None:
+            folio = 0
+        else:
+            folio = folio[0] + 1
+        conn.commit()
+        conn.close()
+
+        while True:
+            try:
+                serviciosList()
+                while True:
+                    try:
+                        clave_servicio = int(input("Ingrese la clave del servicio a realizar: "))
+                        conn = sqlite3.connect("TALLER_MECANICO.db")
+                        cursor = conn.cursor()
+                        cursor.execute(f"SELECT * FROM SERVICIOS WHERE clave = {clave_servicio}")
+                        resultado = cursor.fetchone()
+                        print(f"Se agregó: {resultado[1]}")
+
+                        #############
+                        conn = sqlite3.connect("TALLER_MECANICO.db")
+                        cursor = conn.cursor()
+                        cursor.execute("SELECT MAX(id_nota) FROM NOTAS;")
+                        id = cursor.fetchone()
+                        if id[0] is None:
+                            id[0] = 0
+                        else:
+                            id = id[0] + 1
+                        conn.commit()
+                        conn.close()
+                        #############
+                        if resultado is None:
+                            print("No existe esa clave de servicio. Intente de nuevo")
+                            continue
+                        else:
+                            costo = resultado[2]
+                            # HACER EL INSERT EN ESTA LINEA CON TODOS LOS DATOS AL MOMENTO
+                            conn = sqlite3.connect("TALLER_MECANICO.db")
+                            cursor = conn.cursor()
+                            try:
+                                cursor.execute(
+                                    f"INSERT INTO NOTAS VALUES({id}, {folio}, '{fechaUser}', '{clave_cliente}', {clave_servicio}, {costo}, 0);")
+                                conn.commit()
+                            except sqlite3.Error as e:
+                                print("Error al agregar la nota:", e)
+                            conn.close()
+                            print("*" * 30)
+                            try:
+                                resp = int(input("¿Agregar mas servicios? (1)Si | (2)No\n>>"))
+                                if not resp in (1, 2):
+                                    print("Elija una opcion correcta.")
+                                    continue
+                                elif resp == 1:
+                                    serviciosList()
+                                    continue
+                                elif resp == 2:
+                                    exit()
+                            except Exception as e:
+                                print(f"1No debe dejar vacio.{sys.exc_info()[0]}")
+                                print(e)
+                    except Exception as e:
+                        print(f"2No debe dejar vacio.{sys.exc_info()[0]}")
+                        print(e)
+                        continue
+                    break
+            except Exception as e:
+                print(f"3No debe dejar vacio.{sys.exc_info()[0]}")
+                print(e)
+            break
+        break
+
+def menuNotas():
+    print("*"*30)
+    try:
+        while True:
+            op = int(input("(1) Registrar una nota."
+                           "\n(2) Cancelar una nota."
+                           "\n(3) Recuperar una nota."
+                           "\n(4) Consultas y reportes."
+                           "\n(5) Volver al menu principal.\n>>"))
+            if not op in (1,2,3,4,5):
+                print("No es una opcion valida.")
+                continue
+            elif op == 1:
+                registrar_nota()
+                break
+            elif op==2:
+                cancelar_nota()
+                break
+    except sqlite3.Error as e:
+        print("Error en la entrada de datos. ", e)
+
+def serviciosList():
+    print("*" * 30)
+    conn = sqlite3.connect("TALLER_MECANICO.db")
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM SERVICIOS")
+    resultado = cursor.fetchall()
+    conn.close()
+    print("*" * 30)
+    for i in resultado:
+        print(f"Clave: {i[0]}\t-- {i[1]}\tCosto: ${i[2]}")
+    print("*" * 30)
+
+
 
 
 def cancelar_nota():
-    # Lógica para cancelar una nota
-    pass
+    folio_cancelar = int(input("Ingresa el folio a cancelar\n>>"))
+    conn = sqlite3.connect("TALLER_MECANICO.db")
+    cursor = conn.cursor()
+    #cursor.execute(f'UPDATE NOTAS SET cancelada = 1 WHERE folio = {folio_cancelar};')
 
+    #print("Nota cancelada con exito.")
+
+    cursor.execute(f'SELECT ')
+    conn.commit()
+    conn.close()
+
+
+    menuNotas()
 
 def recuperar_nota():
     # Lógica para recuperar una nota cancelada
@@ -113,6 +297,7 @@ def agregar_cliente():
     conn.commit()
     conn.close()
     print("Registro agregado correctamente.")
+    menuClientes()
 def menuConsultasyReportesCLIENTES():
     while True:
         print("*" * 30)
@@ -131,7 +316,7 @@ def menuConsultasyReportesCLIENTES():
             busquedaPorClave()
             break
         elif opcion == "3":
-            busquedaPorNombreSERVICIOS()
+            busquedaPorNombre()
             break
         elif opcion == "4":
             menuClientes()
@@ -217,7 +402,7 @@ def listado_clientes_registrados():
             resultado = cursor.fetchall()
             print("*" * 30)
             for clave, nombre, rfc, correo in resultado:
-                print(f"Clave: {clave}\t{nombre}\t{rfc}\t{correo}")
+                print(f"Clave: {clave}\t|\t{nombre}\t|\t{rfc}\t|\t{correo}")
                 datos_excel.append((clave, nombre, rfc, correo))
             print("*" * 30)
             conn.commit()
@@ -254,7 +439,7 @@ def listado_clientes_registrados():
             resultado = cursor.fetchall()
             print("*" * 30)
             for clave, nombre, rfc, correo in resultado:
-                print(f"Clave: {clave}\t{nombre}\t{rfc}\t{correo}")
+                print(f"Clave: {clave}\t|\t{nombre}\t|\t{rfc}\t|\t{correo}")
                 datos_excel.append((clave, nombre, rfc, correo))
             print("*" * 30)
             conn.commit()
@@ -447,7 +632,7 @@ def listado_servicios_registrados():
             resultado = cursor.fetchall()
             print("*" * 30)
             for clave, nombreServicio, costo,  in resultado:
-                print(f"Clave: {clave}\t{nombreServicio}\t{costo}")
+                print(f"Clave: {clave}\t|\t{nombreServicio}\t|\t${costo}")
                 datos_excel.append((clave, nombreServicio, costo ))
             print("*" * 30)
             conn.commit()
@@ -482,7 +667,7 @@ def listado_servicios_registrados():
             resultado = cursor.fetchall()
             print("*" * 30)
             for clave, nombreServicio, costo,  in resultado:
-                print(f"Clave: {clave}\t{nombreServicio}\t{costo} ")
+                print(f"Clave: {clave}\t|\t{nombreServicio}\t|\t${costo} ")
                 datos_excel.append((clave, nombreServicio, costo ))
             print("*" * 30)
             conn.commit()
@@ -550,8 +735,8 @@ def menu_principal():
         opcion = input("Seleccione una opción: ")
 
         if opcion == "1":
-            # Lógica del menú de notas
-            pass
+            menuNotas()
+            break
         elif opcion == "2":
             menuClientes()
             break
