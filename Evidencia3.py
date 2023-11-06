@@ -43,7 +43,11 @@ def registrar_nota():
             print("*" * 30)
             conn.close()
 
-            clave2 = int(input("Ingresa la clave de cliente\n>>"))
+            try:
+                clave2 = int(input("Ingresa la clave de cliente. (Vacio para regresar al menu Notas).\n>>"))
+            except:
+                print("Regresando al menu Notas...")
+                menuNotas()
             conn = sqlite3.connect("TALLER_MECANICO.db")
             cursor = conn.cursor()
             cursor.execute(f"SELECT * FROM CLIENTES WHERE clave={clave2}")
@@ -181,10 +185,13 @@ def menuNotas():
             elif op==2:
                 cancelar_nota()
                 break
+            elif op == 3:
+                recuperar_nota()
             elif op==5:
                 menuNotas()
-    except sqlite3.Error as e:
-        print("Error en la entrada de datos. ", e)
+    except Exception as e:
+        print("No es una opcion valida!")
+        menuNotas()
 
 def serviciosList():
     print("*" * 30)
@@ -252,6 +259,8 @@ def cancelar_nota():
                     ##CANCELAR LA NOTA
                     cursor.execute(f'UPDATE NOTAS SET cancelada = 1 WHERE folio = {folio_cancelar};')
                     print("Nota cancelada con exito.")
+                    conn.commit()
+                    conn.close()
                     break
                 elif resp == 2:
                     print("La nota no se ha cancelado. Volviendo al menu de Notas.")
@@ -264,30 +273,58 @@ def cancelar_nota():
         print("*" * 30)
         ##print("Nota cancelada exitosamente.")
         print("*" * 30)
-    conn.commit()
-    conn.close()
     menuNotas()
 
 def recuperar_nota():
-    folio_cancelar = int(input("Ingresa el folio de la nota a recuperar\n>>"))
+
     conn = sqlite3.connect("TALLER_MECANICO.db")
     cursor = conn.cursor()
-    cursor.execute(f'SELECT folio FROM NOTAS WHERE folio={folio_cancelar} AND cancelada = 1;')
+    ###RECUPERAR LA NOTA
+    cursor.execute(f'SELECT * FROM NOTAS WHERE cancelada=1;')
     resultado = cursor.fetchall()
-    if len(resultado)<1:
-        print("*" * 30)
-        print("No existe ese folio.")
-        print("*" * 30)
-        cancelar_nota()
-    else:
+    if len(resultado)==0:
+        print("No hay ninguna nota cancelada. Regresando al menu de notas.")
+        menuNotas()
+    folios =[]
+    print("*" * 60)
+    for i in resultado:
+        cursor.execute(f'SELECT SUM(total) FROM NOTAS WHERE folio = {i[1]};')
+        totalPagar = cursor.fetchone()
 
-        ###RECUPERAR LA NOTA
-        ###cursor.execute(f'UPDATE NOTAS SET cancelada = 0 WHERE folio = {folio_cancelar};')
-        print("*" * 30)
-        print("Nota recuperada exitosamente.")
-        print("*" * 30)
-    conn.commit()
-    conn.close()
+        if i[1] not in folios:
+            print(f"Folio: {i[1]}\tFecha: {i[2]}\tMonto a pagar: ${totalPagar[0]}")
+            folios.append(i[1])
+        else:
+            continue
+    print("*" * 60)
+    try:
+        while True:
+            try:
+                folio_recuperar = int(input("Ingrese el folio a recuperar. (Vacio para regresar al menu Notas).\n>>"))
+            except:
+                print("Regresando al menu de notas...")
+                menuNotas()
+            cursor.execute(f'SELECT folio FROM NOTAS WHERE folio={folio_recuperar} AND cancelada = 1;')
+            resultado = cursor.fetchall()
+            if len(resultado) < 1:
+                print("*" * 30)
+                print("No existe ese folio.")
+                print("*" * 30)
+                recuperar_nota()
+                conn.commit()
+                conn.close()
+            else:
+                ###RECUPERAR LA NOTA
+                cursor.execute(f'UPDATE NOTAS SET cancelada = 0 WHERE folio = {folio_recuperar};')
+                print("*" * 30)
+                print("Nota recuperada exitosamente.")
+                print("*" * 30)
+                conn.commit()
+                conn.close()
+                break
+    except Exception as e:
+        print("Error en la captura de datos.", e)
+
     menuNotas()
 
 
