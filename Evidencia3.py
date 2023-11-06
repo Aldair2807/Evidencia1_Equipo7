@@ -107,7 +107,7 @@ def registrar_nota():
                         clave_servicio = int(input("Ingrese la clave del servicio a realizar: "))
                         conn = sqlite3.connect("TALLER_MECANICO.db")
                         cursor = conn.cursor()
-                        cursor.execute(f"SELECT * FROM SERVICIOS WHERE clave = {clave_servicio}")
+                        cursor.execute(f"SELECT * FROM SERVICIOS WHERE clave = {clave_servicio} AND NOTAS.cancelada = 0;")
                         resultado = cursor.fetchone()
                         print(f"Se agregó: {resultado[1]}")
 
@@ -181,6 +181,8 @@ def menuNotas():
             elif op==2:
                 cancelar_nota()
                 break
+            elif op==5:
+                menuNotas()
     except sqlite3.Error as e:
         print("Error en la entrada de datos. ", e)
 
@@ -200,23 +202,93 @@ def serviciosList():
 
 
 def cancelar_nota():
-    folio_cancelar = int(input("Ingresa el folio a cancelar\n>>"))
+    folio_cancelar = int(input("Ingresa el folio de la nota a cancelar\n>>"))
     conn = sqlite3.connect("TALLER_MECANICO.db")
     cursor = conn.cursor()
-    #cursor.execute(f'UPDATE NOTAS SET cancelada = 1 WHERE folio = {folio_cancelar};')
+    cursor.execute(f'SELECT * FROM NOTAS WHERE folio={folio_cancelar} AND cancelada = 0;')
+    resultado = cursor.fetchone()
+    if resultado is None:
+        print("*" * 30)
+        print("No está disponible ese folio o fue cancelado con anterioridad.")
+        print("*" * 30)
+        cancelar_nota()
+    else:
+        cursor.execute(f'SELECT folio, fecha, clave_cliente, clave_servicio, SUM(total) FROM NOTAS WHERE cancelada = 0 AND folio = {folio_cancelar};')
+        nota = cursor.fetchone()
+        cursor.execute(f'SELECT nombre FROM CLIENTES WHERE clave={nota[2]}')
+        nombre = cursor.fetchone()
+        print("*" * 30)
+        print(f"Folio: {nota[0]}")
+        print(f"Fecha: {nota[1]}")
+        print(f"Nombre del cliente: {nombre[0]}")
 
-    #print("Nota cancelada con exito.")
+        listaClaves = []
+        listaServicios = []
+        cursor.execute(f"SELECT * FROM NOTAS WHERE folio = {folio_cancelar};")
+        res = cursor.fetchall()
+        for i in res:
+            listaClaves.append(i[4])
 
-    cursor.execute(f'SELECT ')
+        for j in listaClaves:
+            cursor.execute(f"SELECT nombreServicio FROM SERVICIOS WHERE clave = {j};")
+            result = cursor.fetchone()
+            listaServicios.append(result[0])
+        print("Servicios: ")
+        for k in listaServicios:
+            print(f"\t-- {k}")
+        print(f"Total a pagar: ${nota[4]}")
+        try:
+            while True:
+                print("*" * 30)
+                print("¿Está seguro en cancelar la nota?")
+                resp = int(input("(1) SI | (2) NO\n>>"))
+                print("*" * 30)
+                listaClaves = []
+                listaServicios = []
+                if not resp in (1,2):
+                    print("No es una opcion válida.")
+                    continue
+                elif resp == 1:
+                    ##CANCELAR LA NOTA
+                    cursor.execute(f'UPDATE NOTAS SET cancelada = 1 WHERE folio = {folio_cancelar};')
+                    print("Nota cancelada con exito.")
+                    break
+                elif resp == 2:
+                    print("La nota no se ha cancelado. Volviendo al menu de Notas.")
+                    menuNotas()
+            menuNotas()
+        except:
+            print(f"Error: {sys.exc_info()[0]}")
+        ##CANCELAR LA NOTA
+        ##cursor.execute(f'UPDATE NOTAS SET cancelada = 1 WHERE folio = {folio_cancelar};')
+        print("*" * 30)
+        ##print("Nota cancelada exitosamente.")
+        print("*" * 30)
     conn.commit()
     conn.close()
-
-
     menuNotas()
 
 def recuperar_nota():
-    # Lógica para recuperar una nota cancelada
-    pass
+    folio_cancelar = int(input("Ingresa el folio de la nota a recuperar\n>>"))
+    conn = sqlite3.connect("TALLER_MECANICO.db")
+    cursor = conn.cursor()
+    cursor.execute(f'SELECT folio FROM NOTAS WHERE folio={folio_cancelar} AND cancelada = 1;')
+    resultado = cursor.fetchall()
+    if len(resultado)<1:
+        print("*" * 30)
+        print("No existe ese folio.")
+        print("*" * 30)
+        cancelar_nota()
+    else:
+
+        ###RECUPERAR LA NOTA
+        ###cursor.execute(f'UPDATE NOTAS SET cancelada = 0 WHERE folio = {folio_cancelar};')
+        print("*" * 30)
+        print("Nota recuperada exitosamente.")
+        print("*" * 30)
+    conn.commit()
+    conn.close()
+    menuNotas()
 
 
 def consulta_por_periodo():
@@ -337,7 +409,7 @@ def busquedaPorClave():
                 menuConsultasyReportesCLIENTES()
             conn = sqlite3.connect("TALLER_MECANICO.db")
             cursor = conn.cursor()
-            cursor.execute(f"SELECT * FROM CLIENTES WHERE clave={claveBuscar}")
+            cursor.execute(f"SELECT * FROM CLIENTES WHERE clave={claveBuscar} AND NOTAS.cancelada = 0;")
             resultado = cursor.fetchall()
             if resultado is None or len(resultado)==0:
                 print("No hay datos de la clave ingresada, intenta con una existente")
