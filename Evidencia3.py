@@ -1,7 +1,7 @@
 # BASE DE DATOS
 import sys, sqlite3, re, os, pandas as pd, csv
 from sqlite3 import Error
-from datetime import datetime
+from datetime import datetime, timedelta
 import openpyxl
 
 base_datos = 'TALLER_MECANICO.db'
@@ -22,7 +22,6 @@ fechaHoy = datetime.today()
 fecha = datetime.strftime(fechaHoy, '%d/%m/%Y')
 fecha2 = datetime.strptime(fecha, '%d/%m/%Y')
 
-idnota = 0
 
 # Menú Notas
 def registrar_nota():
@@ -111,7 +110,7 @@ def registrar_nota():
                         clave_servicio = int(input("Ingrese la clave del servicio a realizar: "))
                         conn = sqlite3.connect("TALLER_MECANICO.db")
                         cursor = conn.cursor()
-                        cursor.execute(f"SELECT * FROM SERVICIOS WHERE clave = {clave_servicio} AND NOTAS.cancelada = 0;")
+                        cursor.execute(f"SELECT * FROM SERVICIOS WHERE clave = {clave_servicio};")
                         resultado = cursor.fetchone()
                         print(f"Se agregó: {resultado[1]}")
 
@@ -166,7 +165,6 @@ def registrar_nota():
                 print(e)
             break
         break
-
 def menuNotas():
     print("*"*30)
     try:
@@ -187,12 +185,13 @@ def menuNotas():
                 break
             elif op == 3:
                 recuperar_nota()
+            elif op == 4:
+                menuConsultasYReportesNOTAS()
             elif op==5:
-                menuNotas()
+                menu_principal()
     except Exception as e:
         print("No es una opcion valida!")
         menuNotas()
-
 def serviciosList():
     print("*" * 30)
     conn = sqlite3.connect("TALLER_MECANICO.db")
@@ -204,10 +203,6 @@ def serviciosList():
     for i in resultado:
         print(f"Clave: {i[0]}\t-- {i[1]}\tCosto: ${i[2]}")
     print("*" * 30)
-
-
-
-
 def cancelar_nota():
     folio_cancelar = int(input("Ingresa el folio de la nota a cancelar\n>>"))
     conn = sqlite3.connect("TALLER_MECANICO.db")
@@ -274,7 +269,6 @@ def cancelar_nota():
         ##print("Nota cancelada exitosamente.")
         print("*" * 30)
     menuNotas()
-
 def recuperar_nota():
 
     conn = sqlite3.connect("TALLER_MECANICO.db")
@@ -327,15 +321,118 @@ def recuperar_nota():
 
     menuNotas()
 
+fechaHoy = datetime.today()
+def consulta_por_periodoNOTAS():
+    print("*"*30)
+    print("Consulta por periodo.")
+    try:
+        while True:
+            while True:
+                fecha_inicial = input("Ingrese la fecha inicial en formato dd/mm/aaaa\n>>")
+                fecha_inicial_format = datetime.strptime(fecha_inicial, '%d/%m/%Y')
+                if fecha_inicial_format > fechaHoy:
+                    print("No debe ser posterior a la fecha actual.")
+                    continue
+                break
+            while True:
+                fecha_final = input("Ingrese la fecha final en formato dd/mm/aaaa\n>>")
+                fecha_final_format = datetime.strptime(fecha_final, '%d/%m/%Y')
+                if fecha_final_format < fecha_inicial_format and fecha_final > fechaHoy:
+                    print("No es correcta, ingrese una fecha valida.")
+                    continue
+                break
 
-def consulta_por_periodo():
-    # Lógica para consultar notas por período
-    pass
+            conn = sqlite3.connect("TALLER_MECANICO.db")
+            cursor = conn.cursor()
+            cursor.execute(f'SELECT * FROM NOTAS WHERE fecha BETWEEN ? AND ?;', (fecha_inicial, fecha_final))
+            res = cursor.fetchall()
+            conn.commit()
+            conn.close()
+            print(res)
+            break
+    except Exception as e:
+        print("Debe ser con formato dd/mm/aaaa.", e)
+
+def menuConsultasYReportesNOTAS():
+    try:
+        while True:
+            op = int(input("Seleccione una opcion:\n"
+                           "1.Consulta por periodo.\n"
+                           "2.Consulta por folio\n"
+                           "3.Volver la menu principal\n>>"))
+            if op not in (1,2,3):
+                print("Opción no válida.")
+                continue
+            elif op== 1:
+                consulta_por_periodoNOTAS()
+                break
+            elif op == 2:
+                consulta_por_folioNOTAS()
+                break
+            elif op==3:
+                menu_principal()
+                break
+    except Exception as e:
+        print("Error en la captura de opcion. Error:",e)
 
 
-def consulta_por_folio():
+def consulta_por_folioNOTAS():
     # Lógica para consultar notas por folio
-    pass
+    conn = sqlite3.connect("TALLER_MECANICO.db")
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT DISTINCT folio, fecha, clave_cliente FROM NOTAS WHERE cancelada = 0 ORDER BY folio ASC;")
+    resultado = cursor.fetchall()
+    #cursor.execute(f"SELECT nombre FROM CLIENTES WHERE clave = {resultado[2]};")
+    #nombreCliente = cursor.fetchone()
+
+    print("*"*30)
+    print("Listado:\n")
+    for i in resultado:
+        cursor.execute(f"SELECT nombre FROM CLIENTES WHERE clave = {i[2]} ;")
+        nombreCliente = cursor.fetchone()
+        print(f"Folio: {i[0]}\tFecha: {i[1]}\tNombre: {nombreCliente[0]}")
+    print("*" * 30)
+    conn.close()
+    try:
+        solicito = int(input("Ingrese el folio a consultar:\n>>"))
+
+        conn = sqlite3.connect("TALLER_MECANICO.db")
+        cursor = conn.cursor()
+        cursor.execute(f'SELECT folio, fecha, clave_cliente, clave_servicio, SUM(total) FROM NOTAS WHERE cancelada = 0 AND folio = {solicito};')
+        nota = cursor.fetchone()
+        if nota[0] is None:
+            print("*"*30)
+            print("¡"*10 ,"No existe ese folio.","!"*10)
+            consulta_por_folioNOTAS()
+        cursor.execute(f'SELECT nombre FROM CLIENTES WHERE clave={nota[2]}')
+        nombre = cursor.fetchone()
+        print("*" * 30)
+        print(f"Folio: {nota[0]}")
+        print(f"Fecha: {nota[1]}")
+        print(f"Nombre del cliente: {nombre[0]}")
+
+        listaClaves = []
+        listaServicios = []
+        cursor.execute(f"SELECT * FROM NOTAS WHERE folio = {solicito};")
+        res = cursor.fetchall()
+        for i in res:
+            listaClaves.append(i[4])
+
+        for j in listaClaves:
+            cursor.execute(f"SELECT nombreServicio FROM SERVICIOS WHERE clave = {j};")
+            result = cursor.fetchone()
+            listaServicios.append(result[0])
+        print("Servicios: ")
+        for k in listaServicios:
+            print(f"\t-- {k}")
+        print(f"Total a pagar: ${nota[4]}")
+        conn.close()
+        menuNotas()
+    except sqlite3.Error as s:
+        print("Error: ", s)
+    except Exception as e:
+        print("Error en la entrada del folio. Intente nuevamente y no deje vacio.", e)
+        consulta_por_folioNOTAS()
 
 # Menú Clientes
 def menuClientes():
