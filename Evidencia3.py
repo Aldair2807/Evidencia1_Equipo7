@@ -165,8 +165,10 @@ def registrar_nota():
                 print(e)
             break
         break
+
+
 def menuNotas():
-    print("*"*30)
+    print("*" * 30)
     try:
         while True:
             op = int(input("(1) Registrar una nota."
@@ -174,24 +176,29 @@ def menuNotas():
                            "\n(3) Recuperar una nota."
                            "\n(4) Consultas y reportes."
                            "\n(5) Volver al menu principal.\n>>"))
-            if not op in (1,2,3,4,5):
+            if not op in (1, 2, 3, 4, 5):
                 print("No es una opcion valida.")
                 continue
             elif op == 1:
                 registrar_nota()
                 break
-            elif op==2:
+            elif op == 2:
                 cancelar_nota()
                 break
             elif op == 3:
                 recuperar_nota()
+                break
             elif op == 4:
                 menuConsultasYReportesNOTAS()
-            elif op==5:
+                break
+            elif op == 5:
                 menu_principal()
+                break
     except Exception as e:
         print("No es una opcion valida!")
         menuNotas()
+
+
 def serviciosList():
     print("*" * 30)
     conn = sqlite3.connect("TALLER_MECANICO.db")
@@ -203,6 +210,8 @@ def serviciosList():
     for i in resultado:
         print(f"Clave: {i[0]}\t-- {i[1]}\tCosto: ${i[2]}")
     print("*" * 30)
+
+
 def cancelar_nota():
     folio_cancelar = int(input("Ingresa el folio de la nota a cancelar\n>>"))
     conn = sqlite3.connect("TALLER_MECANICO.db")
@@ -215,7 +224,8 @@ def cancelar_nota():
         print("*" * 30)
         cancelar_nota()
     else:
-        cursor.execute(f'SELECT folio, fecha, clave_cliente, clave_servicio, SUM(total) FROM NOTAS WHERE cancelada = 0 AND folio = {folio_cancelar};')
+        cursor.execute(
+            f'SELECT folio, fecha, clave_cliente, clave_servicio, SUM(total) FROM NOTAS WHERE cancelada = 0 AND folio = {folio_cancelar};')
         nota = cursor.fetchone()
         cursor.execute(f'SELECT nombre FROM CLIENTES WHERE clave={nota[2]}')
         nombre = cursor.fetchone()
@@ -247,7 +257,7 @@ def cancelar_nota():
                 print("*" * 30)
                 listaClaves = []
                 listaServicios = []
-                if not resp in (1,2):
+                if not resp in (1, 2):
                     print("No es una opcion válida.")
                     continue
                 elif resp == 1:
@@ -269,17 +279,18 @@ def cancelar_nota():
         ##print("Nota cancelada exitosamente.")
         print("*" * 30)
     menuNotas()
-def recuperar_nota():
 
+
+def recuperar_nota():
     conn = sqlite3.connect("TALLER_MECANICO.db")
     cursor = conn.cursor()
     ###RECUPERAR LA NOTA
     cursor.execute(f'SELECT * FROM NOTAS WHERE cancelada=1;')
     resultado = cursor.fetchall()
-    if len(resultado)==0:
+    if len(resultado) == 0:
         print("No hay ninguna nota cancelada. Regresando al menu de notas.")
         menuNotas()
-    folios =[]
+    folios = []
     print("*" * 60)
     for i in resultado:
         cursor.execute(f'SELECT SUM(total) FROM NOTAS WHERE folio = {i[1]};')
@@ -293,11 +304,13 @@ def recuperar_nota():
     print("*" * 60)
     try:
         while True:
+
             try:
                 folio_recuperar = int(input("Ingrese el folio a recuperar. (Vacio para regresar al menu Notas).\n>>"))
             except:
                 print("Regresando al menu de notas...")
                 menuNotas()
+
             cursor.execute(f'SELECT folio FROM NOTAS WHERE folio={folio_recuperar} AND cancelada = 1;')
             resultado = cursor.fetchall()
             if len(resultado) < 1:
@@ -309,21 +322,36 @@ def recuperar_nota():
                 conn.close()
             else:
                 ###RECUPERAR LA NOTA
-                cursor.execute(f'UPDATE NOTAS SET cancelada = 0 WHERE folio = {folio_recuperar};')
-                print("*" * 30)
-                print("Nota recuperada exitosamente.")
-                print("*" * 30)
-                conn.commit()
-                conn.close()
+                while True:
+                    try:
+                        op = int(input("¿Está seguro que desea recuperar la nota seleccionada?\n(1) Si\t(2) No.\n>>"))
+                        if op not in (1, 2):
+                            print("Opcion incorrecta, vuelva a intentarlo.")
+                        elif op == 1:
+                            cursor.execute(f'UPDATE NOTAS SET cancelada = 0 WHERE folio = {folio_recuperar};')
+                            print("*" * 30)
+                            print("Nota recuperada exitosamente.")
+                            print("*" * 30)
+                            conn.commit()
+                            conn.close()
+                        elif op == 2:
+                            print("No se recuperó la nota.")
+                            break
+                    except:
+                        print("Error en la opcion seleccionada. Vuelva a intentarlo.")
+                    break
                 break
     except Exception as e:
         print("Error en la captura de datos.", e)
 
     menuNotas()
 
+
 fechaHoy = datetime.today()
+
+
 def consulta_por_periodoNOTAS():
-    print("*"*30)
+    print("*" * 30)
     print("Consulta por periodo.")
     try:
         while True:
@@ -353,6 +381,7 @@ def consulta_por_periodoNOTAS():
     except Exception as e:
         print("Debe ser con formato dd/mm/aaaa.", e)
 
+
 def menuConsultasYReportesNOTAS():
     try:
         while True:
@@ -360,20 +389,20 @@ def menuConsultasYReportesNOTAS():
                            "1.Consulta por periodo.\n"
                            "2.Consulta por folio\n"
                            "3.Volver la menu principal\n>>"))
-            if op not in (1,2,3):
+            if op not in (1, 2, 3):
                 print("Opción no válida.")
                 continue
-            elif op== 1:
+            elif op == 1:
                 consulta_por_periodoNOTAS()
                 break
             elif op == 2:
                 consulta_por_folioNOTAS()
                 break
-            elif op==3:
+            elif op == 3:
                 menu_principal()
                 break
     except Exception as e:
-        print("Error en la captura de opcion. Error:",e)
+        print("Error en la captura de opcion. Error:", e)
 
 
 def consulta_por_folioNOTAS():
@@ -382,10 +411,10 @@ def consulta_por_folioNOTAS():
     cursor = conn.cursor()
     cursor.execute(f"SELECT DISTINCT folio, fecha, clave_cliente FROM NOTAS WHERE cancelada = 0 ORDER BY folio ASC;")
     resultado = cursor.fetchall()
-    #cursor.execute(f"SELECT nombre FROM CLIENTES WHERE clave = {resultado[2]};")
-    #nombreCliente = cursor.fetchone()
+    # cursor.execute(f"SELECT nombre FROM CLIENTES WHERE clave = {resultado[2]};")
+    # nombreCliente = cursor.fetchone()
 
-    print("*"*30)
+    print("*" * 30)
     print("Listado:\n")
     for i in resultado:
         cursor.execute(f"SELECT nombre FROM CLIENTES WHERE clave = {i[2]} ;")
@@ -398,11 +427,12 @@ def consulta_por_folioNOTAS():
 
         conn = sqlite3.connect("TALLER_MECANICO.db")
         cursor = conn.cursor()
-        cursor.execute(f'SELECT folio, fecha, clave_cliente, clave_servicio, SUM(total) FROM NOTAS WHERE cancelada = 0 AND folio = {solicito};')
+        cursor.execute(
+            f'SELECT folio, fecha, clave_cliente, clave_servicio, SUM(total) FROM NOTAS WHERE cancelada = 0 AND folio = {solicito};')
         nota = cursor.fetchone()
         if nota[0] is None:
-            print("*"*30)
-            print("¡"*10 ,"No existe ese folio.","!"*10)
+            print("*" * 30)
+            print("¡" * 10, "No existe ese folio.", "!" * 10)
             consulta_por_folioNOTAS()
         cursor.execute(f'SELECT nombre FROM CLIENTES WHERE clave={nota[2]}')
         nombre = cursor.fetchone()
@@ -434,6 +464,7 @@ def consulta_por_folioNOTAS():
         print("Error en la entrada del folio. Intente nuevamente y no deje vacio.", e)
         consulta_por_folioNOTAS()
 
+
 # Menú Clientes
 def menuClientes():
     print("*" * 30)
@@ -453,6 +484,8 @@ def menuClientes():
         elif opcion == "3":
             menu_principal()
             break
+
+
 def agregar_cliente():
     print("*" * 30)
     print("\tAgregar cliente\n")
@@ -504,6 +537,8 @@ def agregar_cliente():
     conn.close()
     print("Registro agregado correctamente.")
     menuClientes()
+
+
 def menuConsultasyReportesCLIENTES():
     while True:
         print("*" * 30)
@@ -530,9 +565,12 @@ def menuConsultasyReportesCLIENTES():
         else:
             print("No es una opcion valida.")
             continue
+
+
 def busquedaPorClave():
     print("*" * 30)
     print("\tBusqueda por clave\n")
+    datos_excel=[]
     try:
         while True:
             print("Ingresa la clave del cliente a buscar")
@@ -541,15 +579,22 @@ def busquedaPorClave():
             except:
                 print("Regresando...")
                 menuConsultasyReportesCLIENTES()
+
+            datos_excel = [('Clave', 'Nombre', 'RFC', 'CORREO')]
+
             conn = sqlite3.connect("TALLER_MECANICO.db")
             cursor = conn.cursor()
-            cursor.execute(f"SELECT * FROM CLIENTES WHERE clave={claveBuscar} AND NOTAS.cancelada = 0;")
+            cursor.execute(f"SELECT * FROM CLIENTES WHERE clave={claveBuscar}")
             resultado = cursor.fetchall()
-            if resultado is None or len(resultado)==0:
+            for clave, nombre, rfc, correo in resultado:
+                datos_excel.append((clave, nombre, rfc, correo))
+            if resultado is None or len(resultado) == 0:
                 print("No hay datos de la clave ingresada, intenta con una existente")
                 continue
 
-            print("*"*30)
+
+
+            print("*" * 30)
             print(f"Clave: {resultado[0][0]}")
             print(f"Nombre: {resultado[0][1]}")
             print(f"RFC: {resultado[0][2]}")
@@ -558,9 +603,33 @@ def busquedaPorClave():
 
             conn.commit()
             conn.close()
+
+            print("Exportar")
+            op = int(input("1. CSV\n"
+                           "2. EXCEL\n"
+                           "3. No exportar, regresar al menu de reportes\n"
+                           ">>"))
+
+            if op == 2:
+                df = pd.DataFrame(datos_excel[1:], columns=datos_excel[0])
+                fechaActual1 = datetime.today()
+                fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
+                df.to_excel(f'ReporteClientesActivosPorClave_{fechahoy}.xlsx', index=False)
+                print("Exportado correctamente.")
+            elif op == 1:
+                fechaActual1 = datetime.today()
+                fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
+                with open(f'ReporteClientesActivosPorClave_{fechahoy}.csv', 'w', newline='',
+                          encoding='utf-8') as archivo_csv:
+                    escritor_csv = csv.writer(archivo_csv)
+                    escritor_csv.writerows(datos_excel)
+                    print("Exportado correctamente.")
+
     except Exception as e:
         print("!" * 30)
         print("Debe ser un valor numerico, y no debe estar vacio.", e)
+
+
 def busquedaPorNombre():
     print("*" * 30)
     print("\tBusqueda por nombre\n")
@@ -574,6 +643,8 @@ def busquedaPorNombre():
             conn = sqlite3.connect("TALLER_MECANICO.db")
             cursor = conn.cursor()
 
+            datos_excel = [('Clave', 'Nombre', 'RFC', 'CORREO')]
+
             # Consulta SQL para filtrar por nombre
             consulta = "SELECT * FROM clientes WHERE nombre LIKE ?"
             # Ejecutar la consulta con el parámetro del nombre buscado
@@ -586,12 +657,39 @@ def busquedaPorNombre():
             for i in resultado:
                 print(f"Clave: {i[0]}\t| Nombre: {i[1]}\t| RFC: {i[2]}\t| Correo: {i[3]}")
             print("*" * 30)
+
+            for clave, nombre, rfc, correo in resultado:
+                datos_excel.append((clave, nombre, rfc, correo))
+
+            print("Exportar")
+            op = int(input("1. CSV\n"
+                           "2. EXCEL\n"
+                           "3. No exportar, regresar al menu de reportes\n"
+                           ">>"))
+
+            if op == 2:
+                df = pd.DataFrame(datos_excel[1:], columns=datos_excel[0])
+                fechaActual1 = datetime.today()
+                fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
+                df.to_excel(f'ReporteClientesActivosPorNombre_{fechahoy}.xlsx', index=False)
+                print("Exportado correctamente.")
+            elif op == 1:
+                fechaActual1 = datetime.today()
+                fechahoy = datetime.strftime(fechaActual1, '%m-%d-%Y')
+                with open(f'ReporteClientesActivosPorNombre_{fechahoy}.csv', 'w', newline='',
+                          encoding='utf-8') as archivo_csv:
+                    escritor_csv = csv.writer(archivo_csv)
+                    escritor_csv.writerows(datos_excel)
+                    print("Exportado correctamente.")
+
             conn.commit()
             conn.close()
     except Exception as e:
         print("!" * 30)
         print("No se encontró el nombre.", e)
     pass
+
+
 def listado_clientes_registrados():
     # Lógica para mostrar el listado de clientes
     print("*" * 30)
@@ -677,13 +775,14 @@ def listado_clientes_registrados():
         elif op == 3:
             menuConsultasyReportesCLIENTES()
 
-
         listado_clientes_registrados()
     except Exception as e:
         print("!" * 30)
         print("Error en la entrada de datos. Vuelva a intentarlo con los numeros 1, 2 o 3.")
         print(e)
     pass
+
+
 # Menú Servicios
 def mostrarServicios():
     while True:
@@ -700,14 +799,16 @@ def mostrarServicios():
         conn.commit()
         conn.close()
         break
+
+
 def agregar_servicio():
     # Lógica para agregar un nuevo servicio
     while True:
         validar = r'\d'
-        print("*"*30)
+        print("*" * 30)
         print("\tAgregar Servicio")
         S_nombre = input("Ingrese nombre del servicio: ")
-        if len(S_nombre.split())==0:
+        if len(S_nombre.split()) == 0:
             print("No puede quedar vacio.")
             continue
         numeros = re.search(validar, S_nombre)
@@ -718,7 +819,7 @@ def agregar_servicio():
     while True:
         try:
             costo = float(input("Ingrese el costo del servicio: "))
-            if len(str(costo).split())==0 or costo+costo == 0.0:
+            if len(str(costo).split()) == 0 or costo + costo == 0.0:
                 print("No debe estar vacio, ni tampoco debe ser 0 (cero).")
         except:
             print("Debe ser un valor con o sin decimal, no letras ni simbolos.\nNo debe estar vacio.")
@@ -737,6 +838,8 @@ def agregar_servicio():
     conn.close()
     print("Servicio agregado correctamente.")
     menuServicios()
+
+
 def busquedaPorClaveSERVICIOS():
     try:
         try:
@@ -750,7 +853,7 @@ def busquedaPorClaveSERVICIOS():
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM SERVICIOS WHERE clave={claveBuscar}")
         resultado = cursor.fetchall()
-        if not len(resultado)==0:
+        if not len(resultado) == 0:
             print("\n", "*" * 30)
             print(f"Clave: {resultado[0][0]}")
             print(f"Servicio: {resultado[0][1]}")
@@ -765,6 +868,8 @@ def busquedaPorClaveSERVICIOS():
     except Exception as e:
         print("!" * 30)
         print("Debe ser un valor numerico, y no debe estar vacio.", e)
+
+
 def busquedaPorNombreSERVICIOS():
     print("*" * 30)
     print("\tBusqueda por nombre de servicio\n")
@@ -783,7 +888,7 @@ def busquedaPorNombreSERVICIOS():
             # Ejecutar la consulta con el parámetro del nombre buscado
             cursor.execute(consulta, ('%' + nombre + '%',))
             resultado = cursor.fetchall()
-            if len(resultado)<1:
+            if len(resultado) < 1:
                 print("\t - No hay datos del servicio ingresado, intenta con uno existente")
                 continue
             print("*" * 30)
@@ -795,6 +900,8 @@ def busquedaPorNombreSERVICIOS():
     except Exception as e:
         print("!" * 30)
         print("No se encontró el servicio.", e)
+
+
 def menuConsultasyReportesSERVICIOS():
     while True:
         print("*" * 30)
@@ -822,6 +929,8 @@ def menuConsultasyReportesSERVICIOS():
         else:
             print("No es una opcion valida.")
             continue
+
+
 def listado_servicios_registrados():
     # Lógica para mostrar el listado de clientes
     print("*" * 30)
@@ -837,9 +946,9 @@ def listado_servicios_registrados():
             cursor.execute("SELECT * FROM SERVICIOS ORDER BY clave")
             resultado = cursor.fetchall()
             print("*" * 30)
-            for clave, nombreServicio, costo,  in resultado:
+            for clave, nombreServicio, costo, in resultado:
                 print(f"Clave: {clave}\t|\t{nombreServicio}\t|\t${costo}")
-                datos_excel.append((clave, nombreServicio, costo ))
+                datos_excel.append((clave, nombreServicio, costo))
             print("*" * 30)
             conn.commit()
             conn.close()
@@ -872,9 +981,9 @@ def listado_servicios_registrados():
             cursor.execute("SELECT * FROM SERVICIOS ORDER BY nombreServicio")
             resultado = cursor.fetchall()
             print("*" * 30)
-            for clave, nombreServicio, costo,  in resultado:
+            for clave, nombreServicio, costo, in resultado:
                 print(f"Clave: {clave}\t|\t{nombreServicio}\t|\t${costo} ")
-                datos_excel.append((clave, nombreServicio, costo ))
+                datos_excel.append((clave, nombreServicio, costo))
             print("*" * 30)
             conn.commit()
             conn.close()
@@ -910,6 +1019,8 @@ def listado_servicios_registrados():
         print("Error en la entrada de datos. Vuelva a intentarlo con los numeros 1, 2 o 3.")
         print(e)
     pass
+
+
 def menuServicios():
     print("*" * 30)
     print("\tMenu Servicios\n")
@@ -928,6 +1039,8 @@ def menuServicios():
         elif opcion == "3":
             menu_principal()
             break
+
+
 # Menú principal
 def menu_principal():
     while True:
@@ -961,5 +1074,7 @@ def menu_principal():
                 print("Opción no válida. Regresando al menú principal.")
         else:
             print("Opción no válida. Intente de nuevo.")
+
+
 # Ejecución del programa
 menu_principal()
